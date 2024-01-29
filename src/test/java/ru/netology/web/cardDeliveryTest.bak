@@ -1,0 +1,52 @@
+package ru.netology.web;
+
+import com.codeborne.selenide.Condition;
+import com.codeborne.selenide.SelenideElement;
+import org.junit.jupiter.api.Test;
+import org.openqa.selenium.Keys;
+import ru.netology.web.DataGenerator;
+
+import java.time.Duration;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
+
+import static com.codeborne.selenide.Condition.exactText;
+import static com.codeborne.selenide.Selenide.$;
+import static com.codeborne.selenide.Selenide.open;
+
+public class cardDeliveryTest {
+/*
+    private String generateDate(int addDays, String pattern) {
+        return LocalDate.now().plusDays(addDays).format(DateTimeFormatter.ofPattern(pattern));
+    }
+*/
+/**
+    Город — один из административных центров субъектов РФ.
+    Дата — не ранее трёх дней с текущей даты.
+    В поле фамилии и имени разрешены только русские буквы, дефисы и пробелы.
+    В поле телефона — только 11 цифр, символ + на первом месте.
+    Флажок согласия должен быть выставлен.
+**/
+    @Test
+    void shouldTest1() {
+        open("http://localhost:9999");
+        var userData = DataGenerator.Registration.generateUser("ru");
+        int addDays1 = 5;
+        int addDays2 = 7;
+        $("[data-test-id='city'] input").sendKeys(userData.getCity());
+        $("[data-test-id='date'] input").sendKeys(Keys.chord(Keys.SHIFT, Keys.HOME), Keys.DELETE);
+        $("[data-test-id='date'] input").doubleClick().sendKeys(DataGenerator.generateDate(addDays1));
+        $("[data-test-id='name'] input").sendKeys(userData.getName());
+        $("[data-test-id='phone'] input").sendKeys(userData.getPhone());
+        $("[data-test-id='agreement']").click();
+        $("//span[text()='Запланировать']").click();
+        $("//div[@data-test-id='success-notification']")
+                .shouldHave(exactText("Успешно! Встреча успешно запланирована на " + DataGenerator.generateDate(addDays1)));
+
+        $("[data-test-id='date'] input").doubleClick().sendKeys(DataGenerator.generateDate(addDays2));
+        $("//span[text()='Запланировать']").click();
+        $("//span[text()='Перепланировать']").click();
+        $("//div[@data-test-id='success-notification']")
+                .shouldHave(exactText("Успешно! Встреча успешно запланирована на " + DataGenerator.generateDate(addDays2)));
+    }
+}
